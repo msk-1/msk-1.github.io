@@ -4,15 +4,33 @@
     "title": "Oracle 実行計画の読み方",
     "description": "DBMS_XPLAN の出力を上から下まで読めるようになるための学習ノート。掲載する実行計画はすべて実測。",
     "category": "Database",
-    "tags": ["Oracle", "SQL", "実行計画"],
+    "tags": [
+      "Oracle",
+      "SQL",
+      "実行計画"
+    ],
     "shot": "1280x1600"
   },
   {
     "repo": "charset-study",
-    "title": "日本語の文字コード対応表",
+    "title": "日本語の文字コード入門",
     "description": "文字コード学習用の Java プロジェクトと、日本語の文字コード対応表。",
     "category": "Charset",
-    "tags": ["Java", "文字コード"],
+    "tags": [
+      "Java",
+      "文字コード"
+    ],
     "shot": "1280x960"
+  },
+  {
+    "repo": "xx-split-trackball-keyboard",
+    "title": "Split Trackball Keyboard Concept",
+    "description": "トラックボール付き分割キーボードのコンセプトを 3D で確かめるビューア。",
+    "category": "Hardware",
+    "tags": [
+      "3D",
+      "Keyboard"
+    ],
+    "shot": "1280x900"
   }
 ]

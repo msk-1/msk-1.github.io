@@ -23,15 +23,13 @@
       var a = el("a", "tile");
       a.href = s.url;
       a.setAttribute("data-category", s.category);
-      if (s.thumb) {
-        var img = el("img");
-        img.src = s.thumb;
-        img.alt = s.title;
-        img.loading = "lazy";
-        a.appendChild(img);
-      } else {
-        a.appendChild(el("div", "tile-type", s.repo));
-      }
+      // サムネイルは毎日の自動撮影で thumbs/<repo>.jpg にできる。まだなければ文字のカードにする
+      var img = el("img");
+      img.src = s.thumb;
+      img.alt = s.title;
+      img.loading = "lazy";
+      img.addEventListener("error", function () { img.replaceWith(el("div", "tile-type", s.repo)); });
+      a.appendChild(img);
       var info = el("div", "tile-info");
       info.appendChild(el("p", "tile-title", s.title));
       info.appendChild(el("p", "tile-meta", [s.category].concat(s.tags || []).join(" / ")));
@@ -103,7 +101,7 @@
               title: r.description || r.name,
               category: "Other",
               tags: [r.language].concat(r.topics || []).filter(Boolean),
-              thumb: null,
+              thumb: "thumbs/" + r.name + ".jpg",
               url: r.homepage || pagesUrl(r.name)
             });
             added = true;

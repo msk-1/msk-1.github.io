@@ -1,0 +1,67 @@
+name: Pages
+
+# main への push で公開する。毎日 1 回（03:00 JST）と手動実行では、先にサムネイルを撮り直す
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  thumbs:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: 日本語の書体を入れる
+        run: sudo apt-get update -q && sudo apt-get install -y -q fonts-noto-cjk
+      - name: Playwright を入れる
+        run: |
+          npm install --no-save playwright@1.49.1
+          npx playwright install --with-deps chromium
+      - name: サムネイルを撮る
+        run: node tools/capture.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 変わった画像だけコミットする
+        run: |
+          git add thumbs
+          if git diff --cached --quiet; then
+            echo "サムネイルに変化なし"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "サムネイルを撮り直す"
+          git push
+
+  deploy:
+    needs: thumbs
+    # push では thumbs を飛ばして公開だけ行う
+    if: ${{ always() && (needs.thumbs.result == 'success' || needs.thumbs.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
