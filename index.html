@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>msk-1 / pages</title>
+<meta name="description" content="msk-1 が GitHub Pages で公開しているサイトの一覧。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&amp;family=Noto+Sans+JP:wght@300;400;500;700&amp;display=swap">
+<link rel="stylesheet" href="assets/hub.css">
+<script>
+  // 保存された配色を描画前に適用する（既定は暗い配色）
+  try { if (localStorage.getItem("hub-theme") === "light") document.documentElement.setAttribute("data-theme", "light"); } catch (e) {}
+</script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="./">msk-1<span>/</span>pages</a>
+  <div class="header-actions">
+    <a class="header-link" href="https://github.com/msk-1">GitHub</a>
+    <button class="theme-toggle" type="button" aria-label="配色を切り替える"></button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <p class="eyebrow">Published with GitHub Pages</p>
+    <h1>pages</h1>
+    <p class="sub">GitHub Pages で公開している学習ノートとツールの一覧。</p>
+  </div>
+  <svg class="hero-arrow" viewBox="0 0 44 64" aria-hidden="true"><path d="M22 0v62M2 42l20 20 20-20"/></svg>
+</section>
+
+<main class="section" id="sites">
+  <div class="section-head">
+    <h2 class="section-title">sites</h2>
+    <p class="count" aria-live="polite"></p>
+  </div>
+  <div class="grid" id="site-grid"></div>
+  <noscript><p>一覧の表示には JavaScript が必要です。<a href="https://github.com/msk-1?tab=repositories">リポジトリの一覧</a> からもたどれます。</p></noscript>
+</main>
+
+<footer class="site-footer">
+  <span>msk-1 / pages</span>
+  <a href="https://github.com/msk-1">github.com/msk-1</a>
+</footer>
+<script src="assets/hub.js"></script>
+</body>
+</html>
