@@ -1,13 +1,13 @@
 // GitHub Pages の一覧を描く
-// 1. sites.json（手で書いた題名・説明・タグ）をすぐに表示する
-// 2. GitHub API で Pages が有効な公開リポジトリを取得し、sites.json にないものを追加し、更新日を埋める
+// 1. sites.json（手で書いた題名・説明・カテゴリ・サムネイル）をすぐに表示する
+// 2. GitHub API で Pages が有効な公開リポジトリを取得し、sites.json にないものを追加する
 //    API が使えない（回数制限など）ときは sites.json の内容だけで表示する
 (function () {
   var USER = "msk-1";
   var SELF = USER + ".github.io";
   var grid = document.getElementById("site-grid");
-  var count = document.querySelector(".count");
-  var HUES = [0, 150, 60, 210, 300, 30, 260, 110];
+  var filterList = document.getElementById("filters");
+  var current = "all";
 
   function el(tag, cls, text) {
     var e = document.createElement(tag);
@@ -15,88 +15,101 @@
     if (text != null) e.textContent = text;
     return e;
   }
-  function fmtDate(iso) {
-    var d = new Date(iso);
-    return d.getFullYear() + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + String(d.getDate()).padStart(2, "0");
-  }
+  function pagesUrl(name) { return "https://" + USER + ".github.io/" + name + "/"; }
 
-  function render(sites) {
+  function renderGrid(sites) {
     grid.textContent = "";
-    sites.forEach(function (s, i) {
-      var a = el("a", "card");
+    sites.forEach(function (s) {
+      var a = el("a", "tile");
       a.href = s.url;
-      var cover = el("div", "card-cover");
-      var hue = s.hue != null ? s.hue : HUES[i % HUES.length];
-      cover.style.setProperty("--hue", hue + "deg");
-      cover.style.setProperty("--bx", [80, 20, 65, 35, 90, 50][i % 6] + "%");
-      cover.style.setProperty("--by", [15, 5, 30, 10, 40, 0][i % 6] + "%");
-      cover.style.setProperty("--cx", [30, 75, 10, 60, 40, 85][i % 6] + "%");
-      cover.appendChild(el("span", "card-num", String(i + 1).padStart(2, "0")));
-      a.appendChild(cover);
-      a.appendChild(el("h3", "card-title", s.title));
-      if (s.description) a.appendChild(el("p", "card-desc", s.description));
-      var meta = [];
-      if (s.tags && s.tags.length) meta.push(s.tags.join(" / "));
-      a.appendChild(el("p", "card-tags", meta.join("")));
-      var foot = el("p", "card-foot");
-      foot.appendChild(el("span", null, s.repo));
-      if (s.updated) foot.appendChild(el("span", null, "updated " + fmtDate(s.updated)));
-      a.appendChild(foot);
+      a.setAttribute("data-category", s.category);
+      if (s.thumb) {
+        var img = el("img");
+        img.src = s.thumb;
+        img.alt = s.title;
+        img.loading = "lazy";
+        a.appendChild(img);
+      } else {
+        a.appendChild(el("div", "tile-type", s.repo));
+      }
+      var info = el("div", "tile-info");
+      info.appendChild(el("p", "tile-title", s.title));
+      info.appendChild(el("p", "tile-meta", [s.category].concat(s.tags || []).join(" / ")));
+      a.appendChild(info);
       grid.appendChild(a);
     });
-    if (count) count.textContent = sites.length + " sites";
+    applyFilter();
   }
 
-  function pagesUrl(name) { return "https://" + USER + ".github.io/" + name + "/"; }
+  function renderFilters(sites) {
+    var counts = { all: sites.length };
+    var order = [];
+    sites.forEach(function (s) {
+      if (!(s.category in counts)) { counts[s.category] = 0; order.push(s.category); }
+      counts[s.category] += 1;
+    });
+    filterList.textContent = "";
+    ["all"].concat(order).forEach(function (key) {
+      var li = el("li");
+      var b = el("button", null, key === "all" ? "All" : key);
+      b.type = "button";
+      b.setAttribute("data-filter", key);
+      b.setAttribute("aria-pressed", key === current ? "true" : "false");
+      b.appendChild(el("span", "num", String(counts[key])));
+      b.addEventListener("click", function () { current = key; renderFiltersState(); applyFilter(); });
+      li.appendChild(b);
+      filterList.appendChild(li);
+    });
+  }
+  function renderFiltersState() {
+    Array.prototype.forEach.call(filterList.querySelectorAll("button"), function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-filter") === current ? "true" : "false");
+    });
+  }
+  function applyFilter() {
+    Array.prototype.forEach.call(grid.children, function (t) {
+      t.hidden = !(current === "all" || t.getAttribute("data-category") === current);
+    });
+  }
+  function render(sites) { renderFilters(sites); renderGrid(sites); }
 
   fetch("sites.json", { cache: "no-cache" })
     .then(function (r) { return r.ok ? r.json() : []; })
     .catch(function () { return []; })
     .then(function (curated) {
       var sites = curated.map(function (c) {
-        return { repo: c.repo, title: c.title || c.repo, description: c.description, tags: c.tags, hue: c.hue, url: c.url || pagesUrl(c.repo) };
+        return {
+          repo: c.repo,
+          title: c.title || c.repo,
+          description: c.description,
+          category: c.category || "Other",
+          tags: c.tags || [],
+          thumb: c.thumb || "thumbs/" + c.repo + ".jpg",
+          url: c.url || pagesUrl(c.repo)
+        };
       });
       render(sites);
 
       return fetch("https://api.github.com/users/" + USER + "/repos?per_page=100&type=owner&sort=pushed")
         .then(function (r) { if (!r.ok) throw new Error("GitHub API " + r.status); return r.json(); })
         .then(function (repos) {
-          var byRepo = {};
-          sites.forEach(function (s) { byRepo[s.repo] = s; });
+          var known = {};
+          sites.forEach(function (s) { known[s.repo] = s; });
+          var added = false;
           repos.forEach(function (r) {
-            if (!r.has_pages || r.fork || r.private || r.name === SELF) return;
-            var s = byRepo[r.name];
-            if (!s) {
-              var tags = [];
-              if (r.language) tags.push(r.language);
-              (r.topics || []).forEach(function (t) { tags.push(t); });
-              s = { repo: r.name, title: r.name, description: r.description, tags: tags, url: r.homepage || pagesUrl(r.name) };
-              sites.push(s);
-              byRepo[r.name] = s;
-            }
-            s.updated = r.pushed_at;
+            if (!r.has_pages || r.fork || r.private || r.name === SELF || known[r.name]) return;
+            sites.push({
+              repo: r.name,
+              title: r.description || r.name,
+              category: "Other",
+              tags: [r.language].concat(r.topics || []).filter(Boolean),
+              thumb: null,
+              url: r.homepage || pagesUrl(r.name)
+            });
+            added = true;
           });
-          // 更新日の新しい順。更新日が分からないものは後ろ
-          sites.sort(function (a, b) { return (b.updated || "").localeCompare(a.updated || ""); });
-          render(sites);
+          if (added) render(sites);
         })
         .catch(function () { /* API が使えなくても sites.json の内容で表示済み */ });
     });
-
-  // 配色の切り替え
-  var theme = document.querySelector(".theme-toggle");
-  if (theme) {
-    theme.addEventListener("click", function () {
-      var light = document.documentElement.getAttribute("data-theme") === "light";
-      if (light) document.documentElement.removeAttribute("data-theme");
-      else document.documentElement.setAttribute("data-theme", "light");
-      try { localStorage.setItem("hub-theme", light ? "dark" : "light"); } catch (e) { /* 保存できなくても切り替えは効く */ }
-    });
-  }
-
-  // ヘッダー: スクロールしたら背景を付ける
-  var header = document.querySelector(".site-header");
-  function onScroll() { if (header) header.classList.toggle("is-scrolled", window.scrollY > 40); }
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
 })();
