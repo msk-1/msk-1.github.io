@@ -1,15 +1,16 @@
 /* msk-1 / pages — 公開サイト一覧のスタイル
-   白地に幾何学的な書体（Outfit）のロゴ、右端に固定したナビ、サムネイルを石畳状に敷き詰める */
+   白地に丸みのある書体（Quicksand）のロゴ、右端に固定したナビ、サムネイルを石畳状に敷き詰める */
 
 :root {
   --bg: #ffffff;
-  --fg: #0a0a0a;
+  --fg: #4d4d4d;   /* 本文・ロゴ・ナビの文字色（明るさ 30% のグレー） */
+  --ink: #0a0a0a;  /* サムネイルのないサイトのカードの地 */
   --muted: #8a8a8a;
   --line: #e6e6e6;
   --tile-gap: 8px;
   --side-w: 220px;
   --pad: clamp(16px, 2.6vw, 40px);
-  --display: "Outfit", "Futura", "Century Gothic", sans-serif;
+  --display: "Quicksand", "Futura", "Century Gothic", sans-serif;
   --font: "Zen Kaku Gothic New", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
   color-scheme: light;
 }
@@ -82,21 +83,85 @@ ul { list-style: none; margin: 0; padding: 0; }
 
 /* ───── 本文 ───── */
 .main { padding: 0 calc(var(--side-w) + 8px) 0 var(--pad); }
-.head { padding-top: clamp(48px, 9vh, 110px); margin-bottom: 24px; }
+.head {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(48px, 9vh, 110px) 0 clamp(40px, 6vh, 72px);
+  margin-bottom: 24px;
+}
 .logo {
+  position: relative;
+  width: fit-content;
   margin: 0;
   font-family: var(--display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: clamp(56px, 10vw, 180px);
   line-height: 0.86;
   letter-spacing: -0.04em;
   margin-left: -0.04em;
 }
 .tagline {
+  position: relative;
+  width: fit-content;
   margin: 18px 0 0;
   font-size: 13px;
   letter-spacing: 0.04em;
-  color: var(--muted);
+  color: var(--fg);
+}
+
+/* ヘッダの背景に並ぶ AI くん（assets/crowd.js が敷き詰める）。
+   左右は画面の端まで広げ、下端は白地に溶かす */
+.crowd {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: calc(-1 * var(--pad));
+  right: calc(-1 * (var(--side-w) + 8px));
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+.crowd > span { position: absolute; display: block; padding: 3px; }
+.kun { display: block; width: 100%; height: auto; overflow: visible; }
+.kun .skin { fill: #ecebe7; }
+.kun .eye { fill: #8f8d89; }
+.kun.idle .skin { fill: #f5f4f2; }
+.kun.idle .eye { fill: #c4c2be; }
+.kun.ok .eye, .kun.run .eye, .kun.look .eye { animation: blink 4.2s infinite; animation-delay: var(--d, 0s); transform-box: fill-box; transform-origin: center; }
+.kun.run { transform-origin: 50% 60%; animation: wobble 0.9s ease-in-out infinite alternate; }
+/* 目線を左右・上下に飛ばし、しばらく止める */
+.eyes.look1 { animation: look1 4s infinite; }
+.eyes.look2 { animation: look2 4s infinite; }
+@keyframes look1 {
+  0%, 18% { transform: translate(0, 0); }
+  22%, 40% { transform: translate(-4px, 0); }
+  44%, 62% { transform: translate(4px, -1px); }
+  66%, 84% { transform: translate(1px, 2px); }
+  88%, 100% { transform: translate(0, 0); }
+}
+@keyframes look2 {
+  0%, 24% { transform: translate(0, 0); }
+  28%, 48% { transform: translate(3px, 2px); }
+  52%, 56% { transform: translate(-4px, -1px); }
+  60%, 80% { transform: translate(-4px, 2px); }
+  84%, 100% { transform: translate(0, 0); }
+}
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.15); } }
+@keyframes wobble { 0% { transform: rotate(-4deg); } 100% { transform: rotate(4deg) translateY(-1px); } }
+/* ロゴと説明の下だけ白く抜いて読みやすくする */
+.logo::before, .tagline::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -0.08em -0.18em;
+  background: var(--bg);
+  filter: blur(14px);
+}
+.tagline::before { inset: -6px -14px; filter: blur(8px); }
+@media (prefers-reduced-motion: reduce) {
+  .kun, .kun .eye, .kun .eyes { animation: none !important; }
 }
 
 /* 石畳状の一覧（列ごとに上から詰める） */
@@ -119,7 +184,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   align-items: flex-end;
   aspect-ratio: 4 / 3;
   padding: 18px;
-  background: var(--fg);
+  background: var(--ink);
   color: var(--bg);
   font-family: var(--display);
   font-weight: 600;
@@ -164,7 +229,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   letter-spacing: -0.03em;
   text-transform: lowercase;
 }
-.about p { margin: 0; color: #333; }
+.about p { margin: 0; }
 
 .foot {
   display: flex;

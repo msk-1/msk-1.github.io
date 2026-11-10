@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- AI くんの顔（ai-jobs のダッシュボードと同じ形）。16px でも顔に見えるよう、顔を枠いっぱいに広げ、目を大きくする -->
+  <rect width="64" height="64" rx="12" fill="#4d4d4d"/>
+  <path transform="translate(32 33) scale(1.32) translate(-31.5 -29)" d="M32 9c11 0 19 7 20 18 1 9-3 17-9 21-6 4-13 5-19 2-8-3-13-11-13-20 0-12 9-21 21-21z" fill="#f6f4f0"/>
+  <ellipse cx="23.5" cy="32" rx="5" ry="6.4" fill="#2b2b2b"/>
+  <ellipse cx="40.5" cy="33" rx="5" ry="6.4" fill="#2b2b2b"/>
+</svg>
